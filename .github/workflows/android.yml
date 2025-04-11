@@ -11,58 +11,51 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 代码检出
-    - uses: actions/checkout@v4
+      # 代码检出
+      - uses: actions/checkout@v4
 
-    # Java 环境配置（必须使用 JDK 17+）
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      # Java 环境配置（使用 JDK 17）
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
 
-    # Android SDK 配置（关键修复）
-    - name: Set up Android SDK
-      uses: android-actions/setup-android@v2
-      with:
-        accept-android-sdk-licenses: true  # 正确参数名
-        # 可选：指定需要安装的 SDK 组件
-        packages: |
-          platforms;android-34
-          build-tools;34.0.0
+      # Android SDK 配置
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v2
+        with:
+          accept-android-sdk-licenses: true
+          packages: |
+            platforms;android-34
+            build-tools;34.0.0
 
-    # 环境验证（调试用）
-    - name: Check Java version
-      run: java -version
+      # 验证 Java 版本
+      - name: Check Java version
+        run: java -version
 
-    # 构建准备
-    - name: Grant gradlew permission
-      run: chmod +x gradlew
+      # 赋予 gradlew 执行权限
+      - name: Grant gradlew permission
+        run: chmod +x gradlew
 
-    # 缓存优化
-    - name: Cache Gradle dependencies
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.gradle/caches
-          ~/.gradle/wrapper
-        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+      # 缓存 Gradle 依赖
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
-    # APK 构建
-    - name: Build Release APK
-      run: ./gradlew assembleRelease --stacktrace
-      env:
-        # 签名配置（需在仓库 Settings -> Secrets 中设置）
-        KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
-        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      # 构建 Release APK
+      - name: Build Release APK
+        run: ./gradlew assembleRelease --stacktrace
 
-    # 产物处理
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: release-apk
-        path: app/build/outputs/apk/release/*.apk
-        retention-days: 7
+      # 上传 APK 产物
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 7
